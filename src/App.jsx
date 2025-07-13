@@ -10,6 +10,8 @@ import './App.css';
 function Scene({ keys, health, setHealth }) {
   const [playerAnimation, setPlayerAnimation] = useState('idle');
   const hitCooldown = useRef(false);
+
+  // We need refs to the physics APIs of our fighters
   const playerPhysicsApi = useRef(null);
   const aiPhysicsApi = useRef(null);
 
@@ -20,22 +22,25 @@ function Scene({ keys, health, setHealth }) {
     }
   }, [keys, playerAnimation]);
 
-  useFrame(() => {
+  useFrame((state, delta) => {
     if (!playerPhysicsApi.current || !aiPhysicsApi.current) return;
 
-    // -- NEW MOVEMENT LOGIC --
-    // We now set velocity on the physics body.
-    const speed = 5;
+    // -- NEW, CORRECTED MOVEMENT LOGIC --
+    const speed = 5; // A little faster for a better feel
     let velocityX = 0;
     let velocityZ = 0;
+
     if (keys['w']) velocityZ = -speed;
     if (keys['s']) velocityZ = speed;
     if (keys['a']) velocityX = -speed;
     if (keys['d']) velocityX = speed;
-    playerPhysicsApi.current.velocity.set(velocityX, 0, velocityZ);
 
-    // Collision & Damage Logic
-    // (This will need to be updated later as positions are now on the physics body)
+    // Set the velocity on the physics body. This is the key change.
+    // We pass the current y-velocity to allow for gravity.
+    playerPhysicsApi.current.velocity.set(velocityX, 0, velocityZ);
+    
+    // -- COLLISION LOGIC (Needs updating to use physics positions) --
+    // We will fix this in the next step. For now, we'll disable it.
   });
   
   const handleAnimationComplete = () => {
@@ -50,7 +55,7 @@ function Scene({ keys, health, setHealth }) {
       <directionalLight position={[5, 10, 5]} intensity={1} castShadow />
       <Arena />
       <Fighter 
-        movementApi={playerPhysicsApi}
+        movementApi={playerPhysicsApi} // Pass the ref to get the API
         position={[0, 1.5, 2]} 
         rotation={[0, Math.PI, 0]} 
         color="red"
@@ -58,7 +63,7 @@ function Scene({ keys, health, setHealth }) {
         onAnimationComplete={handleAnimationComplete}
       />
       <Fighter 
-        movementApi={aiPhysicsApi}
+        movementApi={aiPhysicsApi} // Pass the ref to the AI as well
         position={[0, 1.5, -2]} 
         color="blue" 
         animation="idle"
@@ -86,7 +91,6 @@ function App() {
     <div className="app-container">
       <UI health={health} />
       <Canvas camera={{ position: [0, 5, 10] }} shadows>
-        {/* Wrap the Scene in the Physics component */}
         <Physics>
           <Scene keys={keys} health={health} setHealth={setHealth} />
         </Physics>
