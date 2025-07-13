@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
+import './index.css'; // Add this line to import global styles.
 
 // Entry point: Renders the App component into the HTML root element.
-// This is the starting file that bootstraps the React app.
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
