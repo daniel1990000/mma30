@@ -1,16 +1,18 @@
 import React from 'react';
-import { MeshStandardMaterial, PlaneGeometry, DoubleSide } from 'three';
+import { usePlane } from '@react-three/cannon';
 
-// Arena component: A simple flat floor plane.
 export default function Arena() {
+  // Create a static physics plane.
+  const [ref] = usePlane(() => ({
+    rotation: [-Math.PI / 2, 0, 0], // Lay it flat
+    position: [0, -0.2, 0] // Position it just below the fighters
+  }));
+
   return (
-    /* Mesh: Basic Three.js object. Geometry is a plane, material for color. */
-    /* Rotation: Lay it flat on the xz-plane (floor). */
-    /* Position: At y=0. */
-    /* ReceiveShadow: Allows shadows. */
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-      <planeGeometry args={[20, 20]} /> {/* Size: 20x20 units. */}
-      <meshStandardMaterial color="green" side={DoubleSide} /> {/* Green for visibility; DoubleSide to fix invisibility. */}
+    // The visual mesh is attached to the physics plane ref.
+    <mesh ref={ref} receiveShadow>
+      <planeGeometry args={[20, 20]} />
+      <meshStandardMaterial color="green" />
     </mesh>
   );
 }
