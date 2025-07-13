@@ -84,4 +84,23 @@ const Fighter = React.forwardRef(({
         </group>
         <group position={[-0.4, 1.8, 0]}>
           <mesh castShadow material={material}>
-            <cylinderGeometry args={[0.15, 0.15,
+            <cylinderGeometry args={[0.15, 0.15, 0.8, 8]} />
+            <group position={[0, -0.4, 0]}>
+              <mesh position={[0, -0.4, 0]} castShadow material={material}>
+                <cylinderGeometry args={[0.15, 0.15, 0.8, 8]} />
+              </mesh>
+            </group>
+          </mesh>
+        </group>
+        <mesh position={[-0.2, 0.3, 0]} material={material} castShadow>
+          <cylinderGeometry args={[0.2, 0.2, 1, 8]} />
+        </mesh>
+        <mesh position={[0.2, 0.3, 0]} material={material} castShadow>
+          <cylinderGeometry args={[0.2, 0.2, 1, 8]} />
+        </mesh>
+      </group>
+    </group>
+  );
+});
+
+export default Fighter;
