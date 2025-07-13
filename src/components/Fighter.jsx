@@ -10,19 +10,19 @@ const Fighter = ({
   color = 'red', 
   animation,
   onAnimationComplete,
-  movementApi // We'll receive the physics API for movement
+  movementApi
 }) => {
   const material = new MeshStandardMaterial({ color });
 
-  // Create a physical box for the fighter.
-  // This box will collide with other physics objects.
+  // Add `fixedRotation: true` to the physics properties
   const [ref, api] = useBox(() => ({
-    mass: 1, // Make it a dynamic object
+    mass: 1,
     position,
-    args: [0.8, 2.5, 0.8] // Dimensions of the collision box
+    args: [0.8, 2.5, 0.8],
+    fixedRotation: true // THIS IS THE FIX: Prevents the body from tumbling
   }));
 
-  // Pass the physics api up to the parent if needed
+  // The rest of the file is exactly the same...
   useEffect(() => {
     if (movementApi) {
       movementApi.current = api;
@@ -43,7 +43,6 @@ const Fighter = ({
     if (!animationGroupRef.current) return;
     const lerpAmount = 0.1;
 
-    // Handle idle state
     if (animation === 'idle') {
       animationGroupRef.current.rotation.x = THREE.MathUtils.lerp(animationGroupRef.current.rotation.x, 0, lerpAmount);
       rightShoulderRef.current.rotation.x = THREE.MathUtils.lerp(rightShoulderRef.current.rotation.x, 0, lerpAmount);
@@ -51,9 +50,8 @@ const Fighter = ({
       return;
     }
 
-    // Handle return phase of animations
     if (returnAnimation.current) {
-      animationGroupRef.current.rotation.x = THREE.MathUtils.lerp(animationGroupRef.current.rotation.x, 0, lerpAmount);
+      animationGroupRef.current.rotation.x = THREE.MathUtils.lerp(animationGroup-ref.current.rotation.x, 0, lerpAmount);
       rightShoulderRef.current.rotation.x = THREE.MathUtils.lerp(rightShoulderRef.current.rotation.x, 0, lerpAmount);
       rightElbowRef.current.rotation.x = THREE.MathUtils.lerp(rightElbowRef.current.rotation.x, 0, lerpAmount);
       if (Math.abs(animationGroupRef.current.rotation.x) < 0.1 && Math.abs(rightShoulderRef.current.rotation.x) < 0.1) {
@@ -62,7 +60,6 @@ const Fighter = ({
       return;
     }
     
-    // Handle main animation phase
     if (animation === 'punch') {
       rightShoulderRef.current.rotation.x = THREE.MathUtils.lerp(rightShoulderRef.current.rotation.x, -Math.PI / 2, lerpAmount);
       rightElbowRef.current.rotation.x = THREE.MathUtils.lerp(rightElbowRef.current.rotation.x, -Math.PI / 2, lerpAmount);
@@ -74,11 +71,8 @@ const Fighter = ({
   });
 
   return (
-    // This group is now controlled by the physics engine
     <group ref={ref} rotation={rotation}>
-      {/* Visual model is a child of the physics body */}
       <group ref={animationGroupRef}>
-        {/* The rest of your fighter model is unchanged */}
         <mesh position={[0, 0, 0]} material={material} castShadow>
           <cylinderGeometry args={[0.3, 0.3, 1.5, 8]} />
         </mesh>
