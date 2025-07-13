@@ -1,74 +1,93 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { CylinderGeometry, SphereGeometry, MeshStandardMaterial } from 'three';
+import * as THREE from 'three';
 
 const Fighter = React.forwardRef(({ position = [0, 0, 0], color = 'red', keys = {} }, ref) => {
   const material = new MeshStandardMaterial({ color });
 
-  // Create refs for the parts we want to animate
-  const rightArmRef = useRef();
+  // Refs for animation
+  const rightShoulderRef = useRef();
+  const rightElbowRef = useRef();
+  const [animation, setAnimation] = useState('idle');
 
-  // State to manage the punch animation
-  const [isPunching, setIsPunching] = useState(false);
-  const punchProgress = useRef(0);
-
-  // This effect listens for the 'j' key press from the props
+  // Animation triggers
   useEffect(() => {
-    // Start the punch animation if 'j' is pressed and we aren't already punching
-    if (keys['j'] && !isPunching) {
-      setIsPunching(true);
-      punchProgress.current = 0; // Reset the animation progress
+    // Start punch if 'j' is pressed and we are idle
+    if (keys['j'] && animation === 'idle') {
+      setAnimation('punch');
     }
-  }, [keys, isPunching]);
+  }, [keys]);
 
-  // useFrame runs on every frame, driving our animation
+  // The main animation loop, running on every frame
   useFrame((state, delta) => {
-    if (isPunching) {
-      // Adjust the speed of the punch animation
-      punchProgress.current += delta * 5;
+    if (animation === 'punch') {
+      // Punch Animation: Rotate shoulder and elbow
+      rightShoulderRef.current.rotation.x = THREE.MathUtils.lerp(rightShoulderRef.current.rotation.x, -Math.PI / 2, 0.1);
+      rightElbowRef.current.rotation.x = THREE.MathUtils.lerp(rightElbowRef.current.rotation.x, -Math.PI / 2, 0.1);
 
-      if (punchProgress.current <= 1) {
-        // The first half of the animation: arm moves forward
-        rightArmRef.current.rotation.x = -punchProgress.current * Math.PI / 2;
-      } else if (punchProgress.current <= 2) {
-        // The second half: arm returns to the start
-        rightArmRef.current.rotation.x = -(2 - punchProgress.current) * Math.PI / 2;
-      } else {
-        // Animation finished: reset state and arm rotation
-        rightArmRef.current.rotation.x = 0;
-        setIsPunching(false);
+      // After a short delay, end the animation
+      if (rightShoulderRef.current.rotation.x < -1.5) {
+        setAnimation('punch_return');
       }
+    } else if (animation === 'punch_return') {
+      // Return to Idle: Lerp rotation back to 0
+      rightShoulderRef.current.rotation.x = THREE.MathUtils.lerp(rightShoulderRef.current.rotation.x, 0, 0.1);
+      rightElbowRef.current.rotation.x = THREE.MathUtils.lerp(rightElbowRef.current.rotation.x, 0, 0.1);
+
+      // Once returned, set to idle
+      if (rightShoulderRef.current.rotation.x > -0.1) {
+        setAnimation('idle');
+      }
+    } else {
+      // Idle state: ensure arms are back in place
+      rightShoulderRef.current.rotation.x = THREE.MathUtils.lerp(rightShoulderRef.current.rotation.x, 0, 0.1);
+      rightElbowRef.current.rotation.x = THREE.MathUtils.lerp(rightElbowRef.current.rotation.x, 0, 0.1);
     }
   });
 
   return (
     <group ref={ref} position={position}>
-      {/* Torso */}
+      {/* Torso & Head */}
       <mesh position={[0, 1.2, 0]} material={material} castShadow>
         <cylinderGeometry args={[0.3, 0.3, 1.5, 8]} />
       </mesh>
-
-      {/* Head */}
       <mesh position={[0, 2.1, 0]} material={material} castShadow>
         <sphereGeometry args={[0.35, 8, 8]} />
       </mesh>
 
-      {/* Left Arm */}
-      <mesh position={[-0.4, 1.8, 0]} rotation={[0, 0, Math.PI / 2]} material={material} castShadow>
-        <cylinderGeometry args={[0.15, 0.15, 0.8, 8]} />
-      </mesh>
+      {/* --- Right Arm (Articulated) --- */}
+      <group ref={rightShoulderRef} position={[0.4, 1.8, 0]}>
+        {/* Upper Arm */}
+        <mesh castShadow material={material}>
+          <cylinderGeometry args={[0.15, 0.15, 0.8, 8]} />
+          <group ref={rightElbowRef} position={[0, -0.4, 0]}>
+            {/* Forearm */}
+            <mesh position={[0, -0.4, 0]} castShadow material={material}>
+              <cylinderGeometry args={[0.15, 0.15, 0.8, 8]} />
+            </mesh>
+          </group>
+        </mesh>
+      </group>
+      
+      {/* --- Left Arm (Articulated) --- */}
+      <group position={[-0.4, 1.8, 0]}>
+         {/* Upper Arm */}
+        <mesh castShadow material={material}>
+          <cylinderGeometry args={[0.15, 0.15, 0.8, 8]} />
+          <group position={[0, -0.4, 0]}>
+            {/* Forearm */}
+            <mesh position={[0, -0.4, 0]} castShadow material={material}>
+              <cylinderGeometry args={[0.15, 0.15, 0.8, 8]} />
+            </mesh>
+          </group>
+        </mesh>
+      </group>
 
-      {/* Right Arm - We attach the ref here to control it */}
-      <mesh ref={rightArmRef} position={[0.4, 1.8, 0]} rotation={[0, 0, -Math.PI / 2]} material={material} castShadow>
-        <cylinderGeometry args={[0.15, 0.15, 0.8, 8]} />
-      </mesh>
-
-      {/* Left Leg */}
+      {/* Legs */}
       <mesh position={[-0.2, 0.3, 0]} material={material} castShadow>
         <cylinderGeometry args={[0.2, 0.2, 1, 8]} />
       </mesh>
-
-      {/* Right Leg */}
       <mesh position={[0.2, 0.3, 0]} material={material} castShadow>
         <cylinderGeometry args={[0.2, 0.2, 1, 8]} />
       </mesh>
