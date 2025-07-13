@@ -1,42 +1,62 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* Main container for the app to layer canvas and UI */
+.app-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* UI layer that sits on top of the canvas */
+.ui-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  pointer-events: none; /* Allows mouse interaction with the canvas below */
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* General styles for health bar containers */
+.health-bar-container {
+  background-color: rgba(0, 0, 0, 0.5);
+  border: 2px solid #666;
+  padding: 5px;
+  width: 30%;
+  height: 30px;
+  position: relative;
 }
 
-.card {
-  padding: 2em;
+.health-bar-container.player {
+  border-color: #ff0000; /* Red for player */
 }
 
-.read-the-docs {
-  color: #888;
+.health-bar-container.ai {
+  border-color: #0000ff; /* Blue for AI */
+}
+
+/* The actual health bar that shrinks */
+.health-bar {
+  background-color: #ff0000; /* Red for player */
+  height: 100%;
+  transition: width 0.2s ease; /* Smooth transition when health changes */
+}
+
+.health-bar-container.ai .health-bar {
+  background-color: #0000ff; /* Blue for AI */
+}
+
+/* Text on top of the health bar */
+.health-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-family: sans-serif;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px black;
 }
