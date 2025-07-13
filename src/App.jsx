@@ -1,37 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import Arena from './components/Arena.jsx';
 import Fighter from './components/Fighter.jsx';
 
-// Main app component: Sets up the 3D scene with movement logic.
-function App() {
-  const [keys, setKeys] = useState({}); // State to track pressed keys.
+function Scene({ keys }) {
+  const playerRef = useRef();
 
-  // Effect to add keyboard event listeners.
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      const key = e.key.toLowerCase();
-      console.log(`Key down: ${key}`); // Debug: Log pressed keys to console.
-      setKeys((prev) => ({ ...prev, [key]: true }));
-    };
-    const handleKeyUp = (e) => {
-      const key = e.key.toLowerCase();
-      console.log(`Key up: ${key}`); // Debug: Log released keys.
-      setKeys((prev) => ({ ...prev, [key]: false }));
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, []);
-
-  // Ref for the player fighter.
-  const playerRef = React.useRef();
-
-  // useFrame: Runs every frame for smooth updates.
   useFrame((state, delta) => {
     if (!playerRef.current) return;
 
@@ -48,18 +23,46 @@ function App() {
   });
 
   return (
-    <Canvas 
-      camera={{ position: [0, 2, 10] }} 
-      style={{ width: '100vw', height: '100vh' }} // Fix: Make canvas full viewport size.
-    >
-      <OrbitControls enableZoom={true} enablePan={true} enableRotate={true} />
-
+    <>
+      <OrbitControls />
       <ambientLight intensity={0.5} />
       <directionalLight position={[5, 10, 5]} intensity={1} castShadow />
-
       <Arena />
 
-      <Fighter ref={playerRef} position={[0, 0.2, 0]} color="red" />
+      {/* Player Fighter (Red) - Pass the 'keys' prop for animation */}
+      <Fighter ref={playerRef} position={[0, 0.2, 2]} color="red" keys={keys} />
+
+      {/* AI Fighter (Blue) - Doesn't need keys yet */}
+      <Fighter position={[0, 0.2, -2]} color="blue" />
+    </>
+  );
+}
+
+function App() {
+  const [keys, setKeys] = useState({});
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      setKeys((prev) => ({ ...prev, [e.key.toLowerCase()]: true }));
+    };
+    const handleKeyUp = (e) => {
+      setKeys((prev) => ({ ...prev, [e.key.toLowerCase()]: false }));
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
+
+  return (
+    <Canvas 
+      camera={{ position: [0, 5, 10] }}
+      style={{ width: '100vw', height: '100vh' }}
+      shadows
+    >
+      <Scene keys={keys} />
     </Canvas>
   );
 }

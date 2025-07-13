@@ -1,56 +1,76 @@
-import React from 'react';
+import React, { useRef, useState, useEffect } from 'react';
+import { useFrame } from '@react-three/fiber';
 import { CylinderGeometry, SphereGeometry, MeshStandardMaterial } from 'three';
 
-// Fighter component: Procedural low-poly MMA dummy model.
-// Now forwarded ref to the group for external position updates.
-const Fighter = React.forwardRef(({ position = [0, 0, 0], color = 'red' }, ref) => {
-  const material = new MeshStandardMaterial({ color }); // Shared material with color.
+const Fighter = React.forwardRef(({ position = [0, 0, 0], color = 'red', keys = {} }, ref) => {
+  const material = new MeshStandardMaterial({ color });
+
+  // Create refs for the parts we want to animate
+  const rightArmRef = useRef();
+
+  // State to manage the punch animation
+  const [isPunching, setIsPunching] = useState(false);
+  const punchProgress = useRef(0);
+
+  // This effect listens for the 'j' key press from the props
+  useEffect(() => {
+    // Start the punch animation if 'j' is pressed and we aren't already punching
+    if (keys['j'] && !isPunching) {
+      setIsPunching(true);
+      punchProgress.current = 0; // Reset the animation progress
+    }
+  }, [keys, isPunching]);
+
+  // useFrame runs on every frame, driving our animation
+  useFrame((state, delta) => {
+    if (isPunching) {
+      // Adjust the speed of the punch animation
+      punchProgress.current += delta * 5;
+
+      if (punchProgress.current <= 1) {
+        // The first half of the animation: arm moves forward
+        rightArmRef.current.rotation.x = -punchProgress.current * Math.PI / 2;
+      } else if (punchProgress.current <= 2) {
+        // The second half: arm returns to the start
+        rightArmRef.current.rotation.x = -(2 - punchProgress.current) * Math.PI / 2;
+      } else {
+        // Animation finished: reset state and arm rotation
+        rightArmRef.current.rotation.x = 0;
+        setIsPunching(false);
+      }
+    }
+  });
 
   return (
-    // Group: Wraps all parts, now with ref.
     <group ref={ref} position={position}>
-      // Torso: Cylinder.
+      {/* Torso */}
       <mesh position={[0, 1.2, 0]} material={material} castShadow>
         <cylinderGeometry args={[0.3, 0.3, 1.5, 8]} />
       </mesh>
 
-      // Head: Sphere on top of torso.
+      {/* Head */}
       <mesh position={[0, 2.1, 0]} material={material} castShadow>
         <sphereGeometry args={[0.35, 8, 8]} />
       </mesh>
 
-      // Left Arm: Cylinder, positioned from shoulder.
+      {/* Left Arm */}
       <mesh position={[-0.4, 1.8, 0]} rotation={[0, 0, Math.PI / 2]} material={material} castShadow>
         <cylinderGeometry args={[0.15, 0.15, 0.8, 8]} />
       </mesh>
 
-      // Right Arm: Mirror of left.
-      <mesh position={[0.4, 1.8, 0]} rotation={[0, 0, -Math.PI / 2]} material={material} castShadow>
+      {/* Right Arm - We attach the ref here to control it */}
+      <mesh ref={rightArmRef} position={[0.4, 1.8, 0]} rotation={[0, 0, -Math.PI / 2]} material={material} castShadow>
         <cylinderGeometry args={[0.15, 0.15, 0.8, 8]} />
       </mesh>
 
-      // Left Leg: Cylinder from hip.
+      {/* Left Leg */}
       <mesh position={[-0.2, 0.3, 0]} material={material} castShadow>
         <cylinderGeometry args={[0.2, 0.2, 1, 8]} />
       </mesh>
 
-      // Right Leg: Mirror.
+      {/* Right Leg */}
       <mesh position={[0.2, 0.3, 0]} material={material} castShadow>
         <cylinderGeometry args={[0.2, 0.2, 1, 8]} />
-      </mesh>
-
-      // Joints: Small spheres for elbows, knees, etc.
-      <mesh position={[-0.4 - 0.4, 1.8, 0]} material={material} castShadow>
-        <sphereGeometry args={[0.1, 8, 8]} />
-      </mesh>
-      <mesh position={[0.4 + 0.4, 1.8, 0]} material={material} castShadow>
-        <sphereGeometry args={[0.1, 8, 8]} />
-      </mesh>
-      <mesh position={[-0.2, -0.2, 0]} material={material} castShadow>
-        <sphereGeometry args={[0.15, 8, 8]} />
-      </mesh>
-      <mesh position={[0.2, -0.2, 0]} material={material} castShadow>
-        <sphereGeometry args={[0.15, 8, 8]} />
       </mesh>
     </group>
   );
