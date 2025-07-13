@@ -9,15 +9,12 @@ function Scene({ keys }) {
 
   useFrame((state, delta) => {
     if (!playerRef.current) return;
-
     const speed = 2;
     const velocity = { x: 0, z: 0 };
-
     if (keys['w']) velocity.z -= speed * delta;
     if (keys['s']) velocity.z += speed * delta;
     if (keys['a']) velocity.x -= speed * delta;
     if (keys['d']) velocity.x += speed * delta;
-
     playerRef.current.position.x += velocity.x;
     playerRef.current.position.z += velocity.z;
   });
@@ -29,10 +26,10 @@ function Scene({ keys }) {
       <directionalLight position={[5, 10, 5]} intensity={1} castShadow />
       <Arena />
 
-      {/* Player Fighter (Red) - Pass the 'keys' prop for animation */}
-      <Fighter ref={playerRef} position={[0, 0.2, 2]} color="red" keys={keys} />
+      {/* Player Fighter (Red) - Add rotation to make him face the opponent */}
+      <Fighter ref={playerRef} position={[0, 0.2, 2]} color="red" keys={keys} rotation={[0, Math.PI, 0]} />
 
-      {/* AI Fighter (Blue) - Doesn't need keys yet */}
+      {/* AI Fighter (Blue) */}
       <Fighter position={[0, 0.2, -2]} color="blue" />
     </>
   );
