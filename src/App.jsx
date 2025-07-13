@@ -3,14 +3,14 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import Arena from './components/Arena.jsx';
 import Fighter from './components/Fighter.jsx';
-import UI from './components/UI.jsx'; // Import the new UI component
-import './App.css'; // Import the new styles
+import UI from './components/UI.jsx';
+import './App.css';
 
 function Scene({ keys, health, setHealth }) {
   const playerRef = useRef();
   const aiRef = useRef();
   const [playerAnimation, setPlayerAnimation] = useState('idle');
-  const hitCooldown = useRef(false); // Ref to prevent multiple hits from one punch
+  const hitCooldown = useRef(false);
 
   useEffect(() => {
     if (playerAnimation === 'idle') {
@@ -19,7 +19,8 @@ function Scene({ keys, health, setHealth }) {
     }
   }, [keys, playerAnimation]);
 
-  useFrame(() => {
+  // THIS IS THE LINE TO FIX
+  useFrame((state, delta) => { // Add 'delta' back here
     if (!playerRef.current || !aiRef.current) return;
 
     // Movement
@@ -37,7 +38,6 @@ function Scene({ keys, health, setHealth }) {
       const distance = playerRef.current.position.distanceTo(aiRef.current.position);
       if (distance < 1.5) {
         console.log("HIT! Reducing AI health.");
-        // Reduce AI health and start cooldown
         setHealth(prev => ({ ...prev, ai: Math.max(0, prev.ai - 10) }));
         hitCooldown.current = true;
       }
@@ -46,7 +46,7 @@ function Scene({ keys, health, setHealth }) {
   
   const handleAnimationComplete = () => {
     setPlayerAnimation('idle');
-    hitCooldown.current = false; // Reset cooldown when animation is done
+    hitCooldown.current = false;
   };
 
   return (
@@ -89,7 +89,6 @@ function App() {
   }, []);
 
   return (
-    // Wrap canvas and UI in a container div
     <div className="app-container">
       <UI health={health} />
       <Canvas camera={{ position: [0, 5, 10] }} shadows>
